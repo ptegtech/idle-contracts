@@ -1,7 +1,7 @@
 const { assert } = require("chai");
 
 const WETHToken = artifacts.require("WETHToken");
-const IdleHero = artifacts.require("IdleHero");
+const ChildIdleHero = artifacts.require("ChildIdleHero");
 const HeroMarket = artifacts.require("HeroMarket");
 
 contract("test HeroMarket", async accounts => {
@@ -19,7 +19,7 @@ contract("test HeroMarket", async accounts => {
   const BaseDNA = new web3.utils.BN("111011127434030112131410101010203041122334402020203040514263646060603040506");
   before(async function() {
     token = await WETHToken.deployed();
-    hero = await IdleHero.deployed();
+    hero = await ChildIdleHero.deployed();
     hmarket = await HeroMarket.deployed();
   });
   it("Mint WETH to account 1", async () => {

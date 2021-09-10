@@ -1,14 +1,21 @@
 // migrations/2_deploy_upgradeable.js
-const IdleHero = artifacts.require('IdleHero');
-const IdleKey = artifacts.require('IdleKey');
+const ChildIdleHero = artifacts.require('ChildIdleHero');
+const HeroStorage = artifacts.require('HeroStorage');
+const ChildIdleKey = artifacts.require('ChildIdleKey');
 
 module.exports = async function (deployer) {
-  await deployer.deploy(IdleHero);
-  await deployer.deploy(IdleKey);
+  await deployer.deploy(ChildIdleHero);
+  await deployer.deploy(HeroStorage);
+  await deployer.deploy(ChildIdleKey);
 
-  const hero = await IdleHero.deployed();
-  const key = await IdleKey.deployed();
+  const hero = await ChildIdleHero.deployed();
+  const storage = await HeroStorage.deployed();
+  const key = await ChildIdleKey.deployed();
+
+  await hero.setHeroStorage(storage.address);
+  await storage.grantMinter(hero.address);
   
   console.log('Deployed IdleHero', hero.address);
   console.log('Deployed IdleKey', key.address);
+  console.log('Deployed HeroStorage', storage.address);
 };

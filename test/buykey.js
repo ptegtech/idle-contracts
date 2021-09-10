@@ -1,9 +1,9 @@
 const WETHToken = artifacts.require("WETHToken");
-const IdleKey = artifacts.require("IdleKey");
+const ChildIdleKey = artifacts.require("ChildIdleKey");
 const KeyMarket = artifacts.require("KeyMarket");
 
 
-contract("test IIdleKey", async accounts => {
+contract("test IChildIdleKey", async accounts => {
     let token;
     let key;
     let kmarket;
@@ -16,7 +16,7 @@ contract("test IIdleKey", async accounts => {
     const keyPriceBN = web3.utils.toWei(keyPrice, "ether");
     before(async function() {
       token = await WETHToken.deployed();
-      key = await IdleKey.deployed();
+      key = await ChildIdleKey.deployed();
       kmarket = await KeyMarket.deployed();
     });
     it("should buy key to account 0", async () => {
@@ -60,7 +60,7 @@ contract("test IIdleKey", async accounts => {
       const mintAmount = web3.utils.toWei(amountBN, "ether");
   
       let balance = await token.balanceOf(acc1);
-      await token.safeMint(acc1, mintAmount, {from: acc1});
+      await token.safeMint(acc1, mintAmount, {from: acc0});
       
       await kmarket.setKeyPrice(web3.utils.toWei("0.001", "ether"));
       await token.approve(kmarket.address, web3.utils.toWei("10", "ether"), {from: acc1});

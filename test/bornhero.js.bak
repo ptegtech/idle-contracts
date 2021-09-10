@@ -3,15 +3,16 @@ const ChildIdleKey = artifacts.require("ChildIdleKey");
 const KeyMarket = artifacts.require("KeyMarket");
 const HeroBox = artifacts.require("HeroBox");
 const ChildIdleHero = artifacts.require("ChildIdleHero");
+const HeroBorn = artifacts.require("HeroBorn");
 const IdleRNG = artifacts.require("IdleRNG");
+const ChildStoneToken = artifacts.require("ChildStoneToken");
 
 
-contract("test openbox", async accounts => {
+contract("test bornhero", async accounts => {
     let token;
     let key;
     let kmarket;
     let box;
-    let hero;
     let rng;
     const acc0 = accounts[0];
     const acc1 = accounts[1];
@@ -25,65 +26,84 @@ contract("test openbox", async accounts => {
       kmarket = await KeyMarket.deployed();
       box = await HeroBox.deployed();
       hero = await ChildIdleHero.deployed();
+      born = await HeroBorn.deployed();
       rng = await IdleRNG.deployed();
+      stone = await ChildStoneToken.deployed();
     });
-    it("should open box and save nft to account 0", async () => {
+    it("should born new nft with 2 nfts with owenr account", async () => {
         const amount = 10000;
         const amountBN = new web3.utils.BN(amount);
         const mintAmount = web3.utils.toWei(amountBN, "ether");
-    
+
         let balance = await token.balanceOf(acc0);
         await token.safeMint(acc0, mintAmount, {from: acc0});
-        
+
         await kmarket.setKeyPrice(web3.utils.toWei("0.001", "ether"));
         await token.approve(kmarket.address, web3.utils.toWei("10", "ether"), {from: acc0});
-        
+
         await kmarket.buyKey({from: acc0});
         await kmarket.buyKey({from: acc0});
         let addr = await key.ownerOf(1);
         assert.equal(addr, acc0);
 
+        await key.isApprovedForAll(acc0, box.address);
         await key.setApprovalForAll(box.address, true, { from: acc0 });
-        var isApproved = await key.isApprovedForAll(acc0, box.address);
-        assert.equal(isApproved, true);
 
         const seed = 12345689;
-        var seedBN = new web3.utils.BN(seed);
+        const seedBN = new web3.utils.BN(seed);
         await rng.setRandomSeed(acc0, seedBN);
-        let seedReady = await rng.isSeedReady(acc0);
-        assert.equal(seedReady, true);
-        
+        await rng.isSeedReady(acc0);
+
         await box.openBox(acc0, { from: acc0 });
-        var howner = await hero.ownerOf(1);
-        assert.equal(howner, acc0);
+        await box.openBox(acc0, { from: acc0 });
+        let addr_temp = await hero.ownerOf(1);
+        assert.equal(addr_temp, acc0);
+
+        await stone.safeMint(acc0, mintAmount, {from: acc0});
+        await stone.approve(born.address, web3.utils.toWei('1000', 'ether'), { from: acc0 });
+
+        await born.bornHero(1,2);
+        let addr_temp2 = await hero.ownerOf(3);
+        assert.equal(addr_temp2, acc0);
     });
-    it("open with account 1 should abort with an error", async () => {
+    it("should born new nft with 2 nfts with owenr account 1", async () => {
       const amount = 10000;
       const amountBN = new web3.utils.BN(amount);
       const mintAmount = web3.utils.toWei(amountBN, "ether");
-  
+
       let balance = await token.balanceOf(acc1);
       await token.safeMint(acc1, mintAmount, {from: acc0});
-      
+
       await kmarket.setKeyPrice(web3.utils.toWei("0.001", "ether"));
       await token.approve(kmarket.address, web3.utils.toWei("10", "ether"), {from: acc1});
-      
+
+      await kmarket.buyKey({from: acc1});
       await kmarket.buyKey({from: acc1});
       let addr = await key.ownerOf(3);
       assert.equal(addr, acc1);
 
       await key.setApprovalForAll(box.address, true, { from: acc1 });
-      var isApproved = await key.isApprovedForAll(acc1, box.address);
-      assert.equal(isApproved, true);
 
-      const seed = 123456890;
-      var seedBN = new web3.utils.BN(seed);
+      const seed = 12345688;
+      const seedBN = new web3.utils.BN(seed);
       await rng.setRandomSeed(acc1, seedBN);
-      let seedReady = await rng.isSeedReady(acc1);
-      assert.equal(seedReady, true);
-      
+      await rng.isSeedReady(acc1);
+
       await box.openBox(acc1, { from: acc1 });
-      let howner = await hero.ownerOf(2);
-      assert.equal(howner, acc1);
-  });
+      await box.openBox(acc1, { from: acc1 });
+      var addr_temp = await hero.ownerOf(4);
+      assert.equal(addr_temp, acc1);
+      addr_temp = await hero.ownerOf(5);
+      assert.equal(addr_temp, acc1);
+
+      await stone.safeMint(acc1, mintAmount, {from: acc0});
+      await stone.approve(born.address, web3.utils.toWei('1000', 'ether'), { from: acc1 });
+
+      await born.bornHero(4,5, { from: acc1 });
+      let addr_temp2 = await hero.ownerOf(6);
+      assert.equal(addr_temp2, acc1);
+    });
+    it("account 1 should not born new nft with account 0 owenr nfts ", async () => {
+      await catchRevert(born.bornHero(1,2, { from: acc1 }));
+    });
   });

@@ -9,5 +9,7 @@ interface IIdleRNG {
 
     function isSeedReady(address from) external view returns (bool);
 
+    function hasRVFRequested(address from) external view  returns (bool);
+
     function setRandomSeed(address addr, uint256 randomness) external;
 }

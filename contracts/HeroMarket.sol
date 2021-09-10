@@ -285,8 +285,7 @@ contract HeroMarket is IHeroMarket, IHeroMarketEnum, ERC721HeroCallerBase, ERC20
 
         // remove sale first
         _removeSale(tokenId);
-        // transfer hero to buyer
-        _safeTransferHeroToken(address(this), msg.sender, tokenId);
+
         uint256 tradeFee = _calculateTradeFee(price);
         // calculate trade fee
         if (price > tradeFee) {
@@ -298,6 +297,8 @@ contract HeroMarket is IHeroMarket, IHeroMarketEnum, ERC721HeroCallerBase, ERC20
             // if trade fee is less than min trade fee, no least fee to pay back to seller
             _totalFeeAmount += msg.value;
         }
+        // transfer hero to buyer
+        _safeTransferHeroToken(address(this), msg.sender, tokenId);
         emit SaleSucceed(tokenId, price, seller, msg.sender);
     }
 

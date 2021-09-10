@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interface/IHeroGene.sol";
 import "./interface/IIdleHero.sol";
 import "./base/ERC721HeroCallerBase.sol";
@@ -10,7 +11,6 @@ import "./base/SecurityBase.sol";
 
 contract HeroBorn is ERC721HeroCallerBase, ERC20TokenCallerBase, GeneCallerBase, SecurityBase {
 
-    uint256 private _baseDNA = 111011127434030112131410101010203041122334402020203040514263646060603040506;
     uint256[] private bornTokenPriceList;
 
     constructor() {
@@ -38,14 +38,12 @@ contract HeroBorn is ERC721HeroCallerBase, ERC20TokenCallerBase, GeneCallerBase,
     }
 
     function _calcBornPrice(uint256 parentIDA, uint256 parentIDB) internal view returns (uint256) {
-        uint256 born_a_price = bornTokenPriceList[IIdleHero(_heroContract).heroBornCount(parentIDA)];
-        uint256 born_b_price = bornTokenPriceList[IIdleHero(_heroContract).heroBornCount(parentIDB)];
+        (, , , uint256 parent_a_borncount) = IIdleHero(_heroContract).heroDetail(parentIDA);
+        (, , , uint256 parent_b_borncount) = IIdleHero(_heroContract).heroDetail(parentIDB);
+        uint256 born_a_price = bornTokenPriceList[parent_a_borncount];
+        uint256 born_b_price = bornTokenPriceList[parent_b_borncount];
         uint256 _bornTokenPrice = born_a_price + born_b_price;
         return _bornTokenPrice;
-    }
-
-    function generateRNGSeed() public {
-        _generateRNGSeedTo(msg.sender);
     }
 
     function bornHero(uint256 parentIDA, uint256 parentIDB) public whenNotPaused heroReady token20Ready geneReady {
@@ -69,14 +67,15 @@ contract HeroBorn is ERC721HeroCallerBase, ERC20TokenCallerBase, GeneCallerBase,
 
         transferERC20TokenFrom(msg.sender, address(this), _bornTokenPrice);
 
-        require(IIdleHero(_heroContract).checkOwenr(msg.sender, parentIDA), "The sender is not the owner of NFT parent A");
-        require(IIdleHero(_heroContract).checkOwenr(msg.sender, parentIDB), "The sender is not the owner of NFT parent B");
-        require(IIdleHero(_heroContract).checkBornCount(parentIDA, parentIDB), "Parents born count must less than 7");
+        (uint256 parent_a_dna, , , uint256 parent_a_borncount) = IIdleHero(_heroContract).heroDetail(parentIDA);
+        (uint256 parent_b_dna, , , uint256 parent_b_borncount) = IIdleHero(_heroContract).heroDetail(parentIDB);
 
-        uint256 parent_a_dna = IIdleHero(_heroContract).heroDNA(parentIDA);
-        uint256 parent_b_dna = IIdleHero(_heroContract).heroDNA(parentIDB);
+        require(IERC721(_heroContract).ownerOf(parentIDA) == msg.sender, "The sender is not the owner of NFT parent A");
+        require(IERC721(_heroContract).ownerOf(parentIDB) == msg.sender, "The sender is not the owner of NFT parent B");
+        require(parent_a_borncount <= 6, "Parents born count must less than 7");
+        require(parent_b_borncount <= 6, "Parents born count must less than 7");
+
         uint256 newDNA = IHeroGene(_geneContract).getBornDNA(parent_a_dna, parent_b_dna, to);
-        // _baseDNA = _baseDNA + 10;
         uint256 tokenId = _safeMintHero(to, newDNA);
 
         IIdleHero(_heroContract).addParentsChilds(parentIDA, parentIDB, tokenId);

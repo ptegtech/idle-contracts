@@ -30,6 +30,14 @@ abstract contract RNGCallerBase {
         return IIdleRNG(_RNGContract).isSeedReady(from);
     }
 
+    function hasRVFRequested(address from) public view returns (bool) {
+        return IIdleRNG(_RNGContract).hasRVFRequested(from);
+    }
+
+    function generateRNGSeed() public virtual RNGReady {
+        _generateRNGSeedTo(msg.sender);
+    }
+
     function _generateRNGSeedTo(address from) internal RNGReady {
         IIdleRNG(_RNGContract).getRandomNumber(from);
     }

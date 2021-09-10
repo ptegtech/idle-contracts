@@ -21,8 +21,6 @@ contract HeroBox is ERC721HeroCallerBase, ERC721KeyCallerBase, ERC20TokenCallerB
     uint256 private _batchRange = 3;
     bool private _firstSale = true;
 
-    // event GetNewDNA(uint256 dna);
-
     constructor() {
     }
 
@@ -284,11 +282,6 @@ contract HeroBox is ERC721HeroCallerBase, ERC721KeyCallerBase, ERC20TokenCallerB
         uint256 batch = 10 + _batchStart + get_rand_int(_batchRange, 1);
         string memory dna = generateDna(batch, _firstSale);
         newDNA = parseIntSelf(dna);
-        // emit GetNewDNA(newDNA);
-    }
-
-    function generateRNGSeed() public RNGReady {
-        _generateRNGSeedTo(msg.sender);
     }
 
     function openBox(address to) public whenNotPaused heroReady keyReady RNGReady {
@@ -307,7 +300,6 @@ contract HeroBox is ERC721HeroCallerBase, ERC721KeyCallerBase, ERC20TokenCallerB
         burnKey(keyTokenId);
 
         uint256 newDNA = _generatorDNA();
-        // _baseDNA = _baseDNA + 10000;
         _safeMintHero(to, newDNA);
     }
 }

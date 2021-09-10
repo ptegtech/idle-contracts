@@ -32,7 +32,7 @@ contract KeyMarket is ERC721KeyCallerBase, ERC20TokenCallerBase, SecurityBase {
         emit KeyPriceChanged(_keyPrice);
     }
 
-    function buyKey() public {
+    function buyKey() public whenNotPaused {
         bool isKeySoldOut = isKeySoldOut();
         require(!isKeySoldOut, "Key has been sold out");
 
@@ -43,7 +43,7 @@ contract KeyMarket is ERC721KeyCallerBase, ERC20TokenCallerBase, SecurityBase {
         safeMintKey(msg.sender);
     }
 
-    function buyKeys(uint256 count) public {
+    function buyKeys(uint256 count) public whenNotPaused {
         bool isKeySoldOut = isKeySoldOut();
         require(!isKeySoldOut, "Key has been sold out");
         require(count <= 10, "Max 10 keys in one time");
