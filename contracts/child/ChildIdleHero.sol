@@ -144,6 +144,11 @@ contract ChildIdleHero is IIdleHero, ERC721Enumerable, Pausable, ChildMintableER
         return baseTokenURI;
     }
 
+    function burn(uint256 tokenId) public whenNotPaused override {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721Burnable: caller is not owner nor approved");
+        _burn(tokenId);
+    }
+
     function setBaseURI(string memory uri) public virtual onlyMinter {
         baseTokenURI = uri;
     }
